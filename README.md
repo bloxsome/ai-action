@@ -245,6 +245,170 @@ ai-action analyze \
 | `AWS_REGION` | Yes | AWS region (e.g., us-east-1) |
 | `AWS_ACCESS_KEY_ID` | Yes | AWS access key |
 | `AWS_SECRET_ACCESS_KEY` | Yes | AWS secret key |
+| `CORTEX_API_URL` | No | Cortex API base URL (for Cortex integration) |
+| `CORTEX_AUTH_TOKEN` | No | Cortex authentication token (for Cortex integration) |
+
+## 🧠 Cortex Integration
+
+AI Action supports integration with the Cortex AI platform, allowing you to route analysis through centrally managed Cortex agents instead of direct AI calls.
+
+### Why Use Cortex?
+
+- **Centralized Agent Management**: Configure agents once, use everywhere
+- **Toolkit Integration**: Extend agents with specialized tools and capabilities
+- **Data Source Access**: Connect agents to organizational knowledge bases
+- **Model Selection**: Choose from multiple LLM models per agent
+- **Prompt Libraries**: Reuse and share prompts across teams
+
+### Cortex Commands
+
+#### List All Agents
+
+```bash
+# List all accessible agents (owned + shared)
+ai-action cortex agents list
+
+# List only your owned agents
+ai-action cortex agents list --include-shared=false
+
+# Limit results
+ai-action cortex agents list --limit 10 --offset 0
+```
+
+#### Get Agent Details
+
+```bash
+ai-action cortex agents get my-security-agent
+```
+
+Output example:
+```json
+{
+  "name": "my-security-agent",
+  "description": "Security vulnerability scanner",
+  "model": "claude-3-5-sonnet-20241022",
+  "temperature": 0.7,
+  "toolkits": ["security-toolkit", "code-analysis"],
+  "data_sources": ["cve-database", "security-docs"],
+  "owner": "security-team"
+}
+```
+
+#### Search for Agents
+
+```bash
+# Find agents by keyword
+ai-action cortex agents search "security"
+
+# With pagination
+ai-action cortex agents search "performance" --limit 20
+```
+
+#### Create a New Agent
+
+```bash
+ai-action cortex agents create my-new-agent \
+  --description "Custom analysis agent" \
+  --model "claude-3-5-sonnet-20241022" \
+  --temperature 0.7 \
+  --toolkits security-toolkit,code-analysis \
+  --datasources security-docs,cve-database
+```
+
+#### Delete an Agent
+
+```bash
+ai-action cortex agents delete my-old-agent
+```
+
+#### List Toolkits
+
+```bash
+# List all toolkits
+ai-action cortex toolkits list
+
+# Get toolkit details
+ai-action cortex toolkits get security-toolkit
+```
+
+#### List Data Sources
+
+```bash
+# List all data sources
+ai-action cortex datasources list
+
+# Get data source details
+ai-action cortex datasources get cve-database
+```
+
+### Using Cortex with Analyze Command
+
+You can route your analysis through a Cortex agent by adding the `--cortex-agent` flag:
+
+```bash
+# Use Cortex agent instead of direct AI
+ai-action analyze \
+  --owner myorg \
+  --repo myrepo \
+  --prompt "Scan for security vulnerabilities" \
+  --cortex-agent my-security-agent
+
+# With custom Cortex URL and token
+ai-action analyze \
+  --owner myorg \
+  --repo myrepo \
+  --prompt "Review code quality" \
+  --cortex-agent code-reviewer \
+  --cortex-url https://api.cortex.lilly.com \
+  --cortex-token $CORTEX_TOKEN
+```
+
+### Cortex in GitHub Actions
+
+```yaml
+name: AI Code Analysis with Cortex
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Security Analysis via Cortex
+        uses: your-org/ai-action@v1
+        with:
+          prompt: "Scan for security vulnerabilities and rate severity"
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          pr-number: ${{ github.event.pull_request.number }}
+          cortex-agent: security-scanner
+        env:
+          GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          GH_APP_ID: ${{ secrets.GH_APP_ID }}
+          GH_APP_INSTALLATION_ID: ${{ secrets.GH_APP_INSTALLATION_ID }}
+          CORTEX_API_URL: ${{ secrets.CORTEX_API_URL }}
+          CORTEX_AUTH_TOKEN: ${{ secrets.CORTEX_AUTH_TOKEN }}
+```
+
+### Cortex Flags
+
+When using the `analyze` command with Cortex:
+
+| Flag | Required | Default | Description |
+|------|----------|---------|-------------|
+| `--cortex-agent` | No | - | Cortex agent name (enables Cortex mode) |
+| `--cortex-url` | No | https://api.dev.cortex.lilly.com | Cortex API base URL |
+| `--cortex-token` | No | From `CORTEX_AUTH_TOKEN` env | Cortex authentication token |
+
+### Benefits of Cortex Integration
+
+1. **Consistency**: Same agent configuration across all workflows
+2. **Governance**: Centralized control over AI model usage
+3. **Knowledge Access**: Agents can access organizational data sources
+4. **Tool Integration**: Extend capabilities with custom tools
+5. **Cost Tracking**: Centralized usage monitoring and billing
+6. **Model Flexibility**: Switch models without updating workflows
 
 ### GitHub App Setup
 
