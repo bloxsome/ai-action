@@ -70,6 +70,11 @@ func runAnalysis(cmd *cobra.Command, args []string) error {
 	cortexToken, _ := cmd.Flags().GetString("cortex-token")
 	useCortex := cortexAgent != ""
 
+	// Fallback to AI_PROMPT environment variable if --prompt flag not provided
+	if prompt == "" {
+		prompt = os.Getenv("AI_PROMPT")
+	}
+
 	// Sanitize inputs
 	owner = validation.SanitizeInput(owner)
 	repo = validation.SanitizeInput(repo)
@@ -99,7 +104,7 @@ func runAnalysis(cmd *cobra.Command, args []string) error {
 
 	// Validate prompt
 	if prompt == "" {
-		return fmt.Errorf("--prompt flag is required")
+		return fmt.Errorf("prompt is required: provide via --prompt flag or AI_PROMPT environment variable")
 	}
 
 	fmt.Printf("🤖 Starting AI analysis for %s/%s\n", owner, repo)
@@ -304,7 +309,7 @@ func init() {
 	// Required flags
 	analyzeCmd.Flags().StringP("owner", "o", "", "GitHub repository owner (required)")
 	analyzeCmd.Flags().StringP("repo", "r", "", "GitHub repository name (required)")
-	analyzeCmd.Flags().StringP("prompt", "p", "", "AI analysis prompt (required)")
+	analyzeCmd.Flags().StringP("prompt", "p", "", "AI analysis prompt (required, or use AI_PROMPT env var)")
 
 	// Optional flags
 	analyzeCmd.Flags().String("ref", "", "Git reference (branch, tag, or commit SHA)")
@@ -318,8 +323,7 @@ func init() {
 	analyzeCmd.Flags().String("cortex-url", "", "Cortex API base URL (default: https://api.dev.cortex.lilly.com or CORTEX_API_URL env)")
 	analyzeCmd.Flags().String("cortex-token", "", "Cortex authentication token (default: CORTEX_AUTH_TOKEN env)")
 
-	// Mark required flags
+	// Mark required flags (prompt can come from env var, so not marked as required)
 	analyzeCmd.MarkFlagRequired("owner")
 	analyzeCmd.MarkFlagRequired("repo")
-	analyzeCmd.MarkFlagRequired("prompt")
 }

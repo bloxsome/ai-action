@@ -42,6 +42,7 @@ A flexible GitHub Action that leverages AWS Bedrock (Claude AI) to perform **any
 
 Add to your `.github/workflows/ai-analysis.yml`:
 
+**Option 1: Inline prompt (simple)**
 ```yaml
 name: AI Code Analysis
 on:
@@ -68,10 +69,47 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 ```
 
+**Option 2: AI_PROMPT environment variable (recommended for multi-line prompts)**
+```yaml
+name: AI Code Analysis
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: AI Analysis
+        uses: your-org/ai-action@v1
+        with:
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          pr-number: ${{ github.event.pull_request.number }}
+        env:
+          AI_PROMPT: |
+            Analyze this code for security vulnerabilities including:
+            - SQL injection
+            - XSS vulnerabilities
+            - Hardcoded secrets or credentials
+            - Command injection
+            - Insecure cryptography
+
+            Rate each finding by severity (Critical, High, Medium, Low)
+            Provide specific line numbers and remediation steps
+          GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          GH_APP_ID: ${{ secrets.GH_APP_ID }}
+          GH_APP_INSTALLATION_ID: ${{ secrets.GH_APP_INSTALLATION_ID }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+```
+
 ## 🎯 Usage
 
 ### Command Line
 
+**Option 1: Using --prompt flag**
 ```bash
 # Generic analysis with custom prompt
 ai-action analyze \
@@ -96,18 +134,37 @@ ai-action analyze \
   --prompt "Analyze changes in this branch"
 ```
 
+**Option 2: Using AI_PROMPT environment variable**
+```bash
+# Set multi-line prompt via environment variable
+export AI_PROMPT="Analyze this code for:
+- Security vulnerabilities
+- Performance issues
+- Code quality problems
+
+Provide specific recommendations."
+
+# Run analysis (prompt comes from env var)
+ai-action analyze \
+  --owner myorg \
+  --repo myrepo \
+  --pr-number 123
+```
+
 ### Flags
 
 | Flag | Short | Required | Default | Description |
 |------|-------|----------|---------|-------------|
 | `--owner` | `-o` | Yes | - | GitHub repository owner |
 | `--repo` | `-r` | Yes | - | GitHub repository name |
-| `--prompt` | `-p` | Yes | - | AI analysis prompt (your custom instructions) |
+| `--prompt` | `-p` | No* | - | AI analysis prompt (or use `AI_PROMPT` env var) |
 | `--ref` | - | No | main | Git reference (branch, tag, or commit SHA) |
 | `--paths` | - | No | all | Comma-separated file patterns (e.g., '*.go,*.js') |
 | `--max-files` | `-m` | No | 20 | Maximum number of files to analyze |
 | `--pr-number` | - | No | 0 | PR number to post results as comment |
 | `--output` | - | No | text | Output format: text or json |
+
+*Either `--prompt` flag or `AI_PROMPT` environment variable must be provided
 
 ## 💡 Examples
 
@@ -117,7 +174,11 @@ ai-action analyze \
 - name: Security Scan
   uses: your-org/ai-action@v1
   with:
-    prompt: |
+    owner: ${{ github.repository_owner }}
+    repo: ${{ github.event.repository.name }}
+    pr-number: ${{ github.event.pull_request.number }}
+  env:
+    AI_PROMPT: |
       Scan for security vulnerabilities including:
       - SQL injection
       - XSS vulnerabilities
@@ -125,6 +186,12 @@ ai-action analyze \
       - Insecure cryptography
       - Command injection
       Rate each finding by severity (Critical, High, Medium, Low)
+    GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
+    GH_APP_ID: ${{ secrets.GH_APP_ID }}
+    GH_APP_INSTALLATION_ID: ${{ secrets.GH_APP_INSTALLATION_ID }}
+    AWS_REGION: ${{ secrets.AWS_REGION }}
+    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 ```
 
 ### 2. Documentation Generation
@@ -245,8 +312,11 @@ ai-action analyze \
 | `AWS_REGION` | Yes | AWS region (e.g., us-east-1) |
 | `AWS_ACCESS_KEY_ID` | Yes | AWS access key |
 | `AWS_SECRET_ACCESS_KEY` | Yes | AWS secret key |
+| `AI_PROMPT` | No* | AI analysis prompt (alternative to --prompt flag) |
 | `CORTEX_API_URL` | No | Cortex API base URL (for Cortex integration) |
 | `CORTEX_AUTH_TOKEN` | No | Cortex authentication token (for Cortex integration) |
+
+*Either `AI_PROMPT` environment variable or `--prompt` flag must be provided
 
 ## 🧠 Cortex Integration
 
