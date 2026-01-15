@@ -1,0 +1,69 @@
+name: AI Documentation Generation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**/*.go'
+      - 'src/**/*.js'
+      - 'src/**/*.ts'
+      - 'src/**/*.py'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+    name: AI-Powered Documentation Generation
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate API Documentation
+        uses: your-org/ai-action@v1
+        with:
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          max-files: 100
+          paths: "src/**/*.go,src/**/*.js,src/**/*.ts"
+          prompt: |
+            Generate comprehensive API documentation for this codebase:
+
+            ## For Each Function/Method
+            1. **Purpose**: Clear description of what it does
+            2. **Parameters**: Name, type, description, required/optional
+            3. **Return Values**: Type and description
+            4. **Errors**: Possible error conditions
+            5. **Example Usage**: Code snippet showing typical usage
+            6. **Side Effects**: Any state changes or external interactions
+
+            ## For Each Class/Struct
+            1. **Purpose**: What this class represents
+            2. **Properties**: Name, type, description
+            3. **Methods**: Brief description of each method
+            4. **Usage Examples**: How to instantiate and use
+
+            ## For Each Package/Module
+            1. **Overview**: High-level purpose
+            2. **Main Components**: List of key exports
+            3. **Dependencies**: What it depends on
+            4. **Example**: Complete usage example
+
+            ## Output Format
+            Use Markdown format suitable for a docs/ directory.
+            Include a table of contents.
+            Add badges for relevant metrics.
+        env:
+          GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          GH_APP_ID: ${{ secrets.GH_APP_ID }}
+          GH_APP_INSTALLATION_ID: ${{ secrets.GH_APP_INSTALLATION_ID }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Save Generated Documentation
+        run: |
+          # This would save the documentation to files
+          # In a real workflow, you'd parse the AI output and create docs
+          echo "Documentation generated successfully"

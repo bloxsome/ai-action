@@ -1,0 +1,56 @@
+name: AI Code Quality Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  quality-review:
+    runs-on: ubuntu-latest
+    name: AI-Powered Code Quality Analysis
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run AI Code Quality Review
+        uses: your-org/ai-action@v1
+        with:
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          pr-number: ${{ github.event.pull_request.number }}
+          max-files: 30
+          prompt: |
+            Perform a comprehensive code quality review focusing on:
+
+            ## Code Quality Metrics
+            1. **Complexity**: Identify overly complex functions (high cyclomatic complexity)
+            2. **Maintainability**: Check for code that will be hard to maintain
+            3. **Readability**: Look for unclear variable names, missing comments
+            4. **Best Practices**: Verify adherence to language-specific best practices
+            5. **Error Handling**: Check for proper error handling and recovery
+            6. **Testing**: Assess testability and test coverage opportunities
+
+            ## Design Principles
+            1. **SOLID Principles**: Check for violations
+            2. **DRY**: Identify code duplication
+            3. **Separation of Concerns**: Check for mixed responsibilities
+            4. **Design Patterns**: Suggest appropriate patterns where applicable
+
+            ## Performance
+            1. **Algorithm Efficiency**: Flag O(n²) or worse where better exists
+            2. **Resource Usage**: Identify memory leaks or excessive allocations
+            3. **Database Queries**: Check for N+1 queries, missing indexes
+
+            ## Output Format
+            - Rate overall code quality: 1-10
+            - List specific issues with file/line references
+            - Provide actionable improvement suggestions
+            - Highlight particularly good code worth keeping
+        env:
+          GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          GH_APP_ID: ${{ secrets.GH_APP_ID }}
+          GH_APP_INSTALLATION_ID: ${{ secrets.GH_APP_INSTALLATION_ID }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

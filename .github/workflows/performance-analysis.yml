@@ -1,0 +1,72 @@
+name: AI Performance Analysis
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  schedule:
+    # Run performance analysis every Sunday at midnight
+    - cron: '0 0 * * 0'
+
+jobs:
+  performance-analysis:
+    runs-on: ubuntu-latest
+    name: AI-Powered Performance Analysis
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Performance Analysis
+        uses: your-org/ai-action@v1
+        with:
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          pr-number: ${{ github.event.pull_request.number }}
+          max-files: 50
+          prompt: |
+            Perform a comprehensive performance analysis:
+
+            ## Algorithm Efficiency
+            1. **Time Complexity**: Identify algorithms with poor complexity (O(n²), O(n³))
+            2. **Space Complexity**: Flag excessive memory usage
+            3. **Better Alternatives**: Suggest more efficient algorithms
+
+            ## Database Performance
+            1. **N+1 Queries**: Identify and suggest fixes
+            2. **Missing Indexes**: Suggest index candidates
+            3. **Query Optimization**: Rewrite inefficient queries
+            4. **Connection Pooling**: Check for proper connection management
+
+            ## Network Performance
+            1. **API Calls**: Identify unnecessary or duplicate API calls
+            2. **Caching Opportunities**: Suggest what should be cached
+            3. **Batch Operations**: Replace loops of API calls with batch operations
+
+            ## Memory Management
+            1. **Memory Leaks**: Identify potential leaks
+            2. **Unnecessary Allocations**: Flag excessive object creation
+            3. **Resource Cleanup**: Check for proper cleanup (defer, try-finally)
+
+            ## Concurrency
+            1. **Parallelization Opportunities**: Suggest where to use goroutines/threads
+            2. **Lock Contention**: Identify potential bottlenecks
+            3. **Race Conditions**: Flag potential data races
+
+            ## Frontend Performance (if applicable)
+            1. **Bundle Size**: Flag large dependencies
+            2. **Lazy Loading**: Suggest code splitting opportunities
+            3. **Re-renders**: Identify unnecessary React re-renders
+            4. **Memory Leaks**: Check for event listener leaks
+
+            ## Output Format
+            - List issues by severity (Critical, High, Medium, Low)
+            - Provide specific file/line references
+            - Include code snippets showing the fix
+            - Estimate potential performance improvement
+        env:
+          GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          GH_APP_ID: ${{ secrets.GH_APP_ID }}
+          GH_APP_INSTALLATION_ID: ${{ secrets.GH_APP_INSTALLATION_ID }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

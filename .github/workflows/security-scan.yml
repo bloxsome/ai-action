@@ -1,0 +1,72 @@
+name: AI Security Scan
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main
+      - develop
+  schedule:
+    # Run security scan every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+
+jobs:
+  security-analysis:
+    runs-on: ubuntu-latest
+    name: AI-Powered Security Analysis
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better analysis
+
+      - name: Run AI Security Scan
+        uses: your-org/ai-action@v1
+        with:
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          pr-number: ${{ github.event.pull_request.number }}
+          max-files: 50
+          paths: "*.go,*.js,*.ts,*.py,*.java,*.rb"
+          prompt: |
+            Perform a comprehensive security analysis of this code. Focus on:
+
+            ## Critical Security Issues
+            1. **SQL Injection**: Check for unsanitized database queries
+            2. **XSS Vulnerabilities**: Look for unescaped user input in HTML/templates
+            3. **Hardcoded Secrets**: Find API keys, passwords, tokens in code
+            4. **Command Injection**: Check for unsanitized shell command execution
+            5. **Path Traversal**: Look for file path vulnerabilities
+            6. **Insecure Cryptography**: Weak algorithms, hardcoded keys
+            7. **Authentication Issues**: Missing auth checks, weak session management
+            8. **Input Validation**: Missing or inadequate input sanitization
+            9. **CORS Misconfigurations**: Overly permissive CORS settings
+            10. **Insecure Dependencies**: Known vulnerable packages
+
+            ## Severity Rating
+            For each finding, provide:
+            - **Severity**: CRITICAL, HIGH, MEDIUM, LOW
+            - **CWE ID**: If applicable
+            - **Location**: File path and line number
+            - **Description**: Clear explanation of the vulnerability
+            - **Exploitation**: How an attacker could exploit this
+            - **Remediation**: Specific fix recommendations
+
+            ## Output Format
+            Group findings by severity and provide an executive summary at the top.
+        env:
+          GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          GH_APP_ID: ${{ secrets.GH_APP_ID }}
+          GH_APP_INSTALLATION_ID: ${{ secrets.GH_APP_INSTALLATION_ID }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Fail on Critical Issues
+        if: failure()
+        run: |
+          echo "❌ Security scan found critical issues!"
+          echo "Review the PR comment for details."
+          exit 1

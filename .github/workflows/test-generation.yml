@@ -1,0 +1,69 @@
+name: AI Test Generation
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'src/**/*.go'
+      - 'src/**/*.js'
+      - 'src/**/*.ts'
+      - 'src/**/*.py'
+
+jobs:
+  generate-tests:
+    runs-on: ubuntu-latest
+    name: AI-Powered Test Generation
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate Unit Tests
+        uses: your-org/ai-action@v1
+        with:
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          pr-number: ${{ github.event.pull_request.number }}
+          max-files: 30
+          paths: "src/**/*.go,src/**/*.js,src/**/*.ts"
+          prompt: |
+            Generate comprehensive unit tests for the modified functions:
+
+            ## Test Requirements
+            1. **Framework**: Use the existing test framework in the codebase
+            2. **Coverage**: Aim for 90%+ code coverage
+            3. **Test Cases**: Include:
+               - Happy path scenarios
+               - Edge cases (empty inputs, nulls, boundaries)
+               - Error conditions
+               - Boundary value analysis
+               - Invalid inputs
+
+            ## Test Structure
+            1. **Arrange**: Set up test data and mocks
+            2. **Act**: Execute the function under test
+            3. **Assert**: Verify expected outcomes
+
+            ## Mocking
+            - Mock external dependencies (databases, APIs, file systems)
+            - Use dependency injection where possible
+            - Create realistic test data
+
+            ## Test Naming
+            - Use descriptive names: Test_FunctionName_Scenario_ExpectedBehavior
+            - Example: Test_ValidateUser_EmptyEmail_ReturnsError
+
+            ## Documentation
+            - Add comments explaining complex test scenarios
+            - Document any setup requirements
+
+            ## Output Format
+            Provide complete, runnable test code that can be copied directly into test files.
+            Group tests by the function they're testing.
+        env:
+          GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          GH_APP_ID: ${{ secrets.GH_APP_ID }}
+          GH_APP_INSTALLATION_ID: ${{ secrets.GH_APP_INSTALLATION_ID }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
